@@ -1,0 +1,11 @@
+{
+  "name": "alert",
+  "version": "0.4",
+  "description": "Alert definition",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crambit/horuspack-alert"
+  },
+  "author": "Eric Lafleur <eric@crambit.com>",
+  "license": "EPL"
+}
