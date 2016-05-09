@@ -5,7 +5,7 @@
             [taoensso.carmine.message-queue :as car-mq]
             [clojure.tools.logging :as log]))
 
-(defmacro ^:private wcar* [& body] `(car/wcar {:pool {} :spec {:uri "{{redis_url}}"}} ~@body))
+(defmacro ^:private wcar* [& body] `(car/wcar {:pool {} :spec {:uri "{{&redis_url}}"}} ~@body))
 
 (defn- publish
   "Publish event to the Redis queue."
