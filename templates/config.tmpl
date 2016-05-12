@@ -2,7 +2,6 @@
   "Alert definition."
   (:require [riemann.common :refer [event-to-json]]
             [taoensso.carmine :as car]
-            [taoensso.carmine.message-queue :as car-mq]
             [clojure.tools.logging :as log]))
 
 (defmacro ^:private wcar* [& body] `(car/wcar {:pool {} :spec {:uri "{{&redis_url}}"}} ~@body))
@@ -11,7 +10,7 @@
   "Publish event to the Redis queue."
   [queue event]
   (try
-    (wcar* (car-mq/enqueue queue (event-to-json event)))
+    (wcar* (car/lpush queue (event-to-json event)))
     (catch Exception e
       (prn (str "RedisError -> " e)))))
 
