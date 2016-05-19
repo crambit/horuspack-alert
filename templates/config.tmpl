@@ -54,9 +54,11 @@
 
   Expect other packages to make use of these levels."
 
-  [& {:keys [level env]}]
+  [& {:keys [coll level env]}]
   (fn [event]
-    (let [env (or env "prod")]
+    (let [coll (or coll (:service event))
+          event (assoc event :collection coll)
+          env (or env "prod")]
       (cond
         (= level "severe")
           (alert-severe env event)
