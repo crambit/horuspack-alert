@@ -1,7 +1,7 @@
 ; -*- mode: clojure; -*-
 ; vim: filetype=clojure
 
-(ns core.alert.config
+(ns core.alert.config.main
   "Alert definition."
   (:require [riemann.common :refer [event-to-json]]
             [taoensso.carmine :as car]
@@ -57,9 +57,9 @@
 
   Expect other packages to make use of these levels."
 
-  [& {:keys [coll level env]}]
+  [& {:keys [level env]}]
   (fn [event]
-    (let [coll (or coll (:service event))
+    (let [coll (or (:collection event) (:service event) (:key event))
           event (assoc event :collection coll)
           env (or env "prod")]
       (cond
