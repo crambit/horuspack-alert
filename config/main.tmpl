@@ -1,13 +1,16 @@
 ; -*- mode: clojure; -*-
 ; vim: filetype=clojure
 
-(ns core.alert.config.main
+(ns horus.alert.config.main
   "Alert definition."
   (:require [riemann.common :refer [event-to-json]]
             [taoensso.carmine :as car]
-            [clojure.tools.logging :as log]))
+            [clojure.string :as cstr]
+            [horus.tslog.config.main :refer [save-alert]]))
 
 (defmacro ^:private wcar* [& body] `(car/wcar {:pool {} :spec {:uri "{{&redis_url}}"}} ~@body))
+
+(def ^:const prefix "hobs-alert:")
 
 (defn- publish
   "Publish event to the Redis queue."
@@ -17,29 +20,27 @@
     (catch Exception e
       (prn (str "RedisError -> " e)))))
 
+
 (defn- alert-severe
   "The most urgent alerting level, often escalated to a page to urgently request human attention."
-  [env event]
-  (log/info (str "SEVERE(" env ") -> " event))
-  (publish "severe" event))
+  [event]
+  (publish (cstr/join [prefix "severe"]) event))
 
 (defn- alert-moderate
   "Alerting urgency level for issues that do require intervention, but not right away."
-  [env event]
-  (log/info (str "MODERATE(" env ") -> " event))
-  (publish "moderate" event))
+  [event]
+  (publish (cstr/join [prefix "moderate"]) event))
 
 (defn- alert-minor
   "Low-urgency alert that is recorded in your monitoring system for future reference or investigation but does not interrupt anyone’s work."
-  [env event]
-  (log/info (str "MINOR(" env ") -> " event))
-  (publish "minor" event))
+  [event]
+  (publish (cstr/join [prefix "minor"]) event))
 
 (defn- alert-tips
   "Some pointers on how to go about a currently observed situation."
-  [env event]
-  (log/info (str "TIPS(" env ") -> " event))
-  (publish "tips" event))
+  [event]
+  (publish (cstr/join [prefix "tips"]) event))
+
 
 (defn alert
   "Not all alerts carry the same degree of urgency. Some require
@@ -57,18 +58,16 @@
 
   Expect other packages to make use of these levels."
 
-  [& {:keys [level env]}]
+  [& {:keys [level]}]
   (fn [event]
-    (let [coll (or (:collection event) (:service event) (:key event))
-          event (assoc event :collection coll)
-          env (or env "prod")]
-      (cond
-        (= level "severe")
-          (alert-severe env event)
-        (= level "moderate")
-          (alert-moderate env event)
-        (= level "minor")
-          (alert-minor env event)
-        :else
-          (alert-tips env event)))))
-
+    (assert (:collection event))
+    (save-alert event)
+    (cond
+      (= level "severe")
+        (alert-severe event)
+      (= level "moderate")
+        (alert-moderate event)
+      (= level "minor")
+        (alert-minor event)
+      :else
+        (alert-tips event))))

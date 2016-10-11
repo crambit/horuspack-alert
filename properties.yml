@@ -1,1 +1,1 @@
-redis_url: "//localhost:6379"
+redis_url: 'redis://localhost:6379'
